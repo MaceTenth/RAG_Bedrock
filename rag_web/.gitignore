@@ -1,0 +1,42 @@
+# Environment variables
+.env
+*.env
+
+# AWS credentials
+*accessKeys*.csv
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Data files (uploaded documents)
+data/
+
+# Docker
+*.tar
+
+# Misc
+*.bak
+*.tmp
