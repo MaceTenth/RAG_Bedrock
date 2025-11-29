@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% block title %}RAG Chatbot{% endblock %}
+
+{% block content %}
+<section class="grid">
+  <div class="col chat-col card">
+    <div class="robot-stage">
+      <div id="robot" class="robot">
+        <div class="antenna"><span class="tip"></span></div>
+        <div class="head">
+          <div class="eyes">
+            <span class="eye left"><i></i></span>
+            <span class="eye right"><i></i></span>
+          </div>
+          <div class="mouth"></div>
+        </div>
+        <div class="body"><div class="panel"></div></div>
+      </div>
+    </div>
+
+    <div id="messages" class="messages" aria-live="polite"></div>
+
+    <form id="chat-form" class="chat-form" autocomplete="off">
+      <input id="chat-input" type="text" placeholder="Ask me anything from your docs…" required />
+      <div class="controls">
+        <label class="k-label">
+          Top-K
+          <input id="topk" type="number" min="1" max="10" value="4">
+        </label>
+        <button id="send-btn" type="submit">Send</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="col docs-col">
+    <section class="card">
+      <h2>Documents</h2>
+      <p class="muted">Upload documents to sync with AWS Bedrock Knowledge Base.</p>
+      <p class="muted" style="font-size: 0.75rem;">Supported: <code>.txt</code>, <code>.pdf</code>, <code>.md</code>, <code>.csv</code>, <code>.html</code>, <code>.docx</code></p>
+      <form id="upload-form" enctype="multipart/form-data" class="upload-form">
+        <input type="file" name="files" id="files" accept=".txt,.pdf,.md,.csv,.html,.docx,.doc" multiple>
+        <button type="submit" id="upload-btn" class="secondary">Upload & Sync</button>
+        <button type="button" id="sync-btn" class="ghost">Manual Sync</button>
+      </form>
+      
+      <!-- Upload Progress -->
+      <div id="upload-progress" class="progress-container hidden">
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <div id="progress-text" class="progress-text">Uploading...</div>
+      </div>
+      
+      <!-- Uploaded Files List -->
+      <div id="uploaded-files" class="uploaded-files-list hidden"></div>
+      
+      <!-- Status Display -->
+      <div id="status" class="status-box">
+        <div id="status-icon" class="status-icon">⏳</div>
+        <div id="status-text" class="status-text">Loading status…</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Last Context</h2>
+      <details id="ctx-details" open>
+        <summary>Show/Hide</summary>
+        <ol id="context-list"></ol>
+      </details>
+    </section>
+  </div>
+</section>
+
+<script>
+const msgs  = document.getElementById("messages");
+const robot = document.getElementById("robot");
+const input = document.getElementById("chat-input");
+const form  = document.getElementById("chat-form");
+const sendBtn = document.getElementById("send-btn");
+const topKEl  = document.getElementById("topk");
+const ctxList = document.getElementById("context-list");
+const statusEl = document.getElementById("status");
+const statusIcon = document.getElementById("status-icon");
+const statusText = document.getElementById("status-text");
+const uploadProgress = document.getElementById("upload-progress");
+const progressFill = document.getElementById("progress-fill");
+const progressText = document.getElementById("progress-text");
+const uploadBtn = document.getElementById("upload-btn");
+const syncBtn = document.getElementById("sync-btn");
+const uploadedFilesEl = document.getElementById("uploaded-files");
+
+let ingestionPollInterval = null;
+
+// Bubble helpers
+function addBubble(text, who="user") {
+  const wrap = document.createElement("div");
+  wrap.className = `bubble ${who}`;
+  wrap.textContent = text;
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+  return wrap;
+}
+async function typeInto(el, text, delay=12) {
+  el.textContent = "";
+  for (let i = 0; i < text.length; i++) {
+    el.textContent += text[i];
+    await new Promise(r => setTimeout(r, delay));
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+function setThinking(on) {
+  robot.classList.toggle("thinking", on);
+  sendBtn.disabled = on;
+}
+
+// Status display helpers
+function setStatus(icon, text, type = "info") {
+  statusIcon.textContent = icon;
+  statusText.textContent = text;
+  statusEl.className = `status-box status-${type}`;
+}
+
+function showProgress(show) {
+  uploadProgress.classList.toggle("hidden", !show);
+  uploadBtn.disabled = show;
+  syncBtn.disabled = show;
+}
+
+function updateProgress(percent, text) {
+  progressFill.style.width = `${percent}%`;
+  progressText.textContent = text;
+}
+
+// Health/status
+async function refreshHealth() {
+  try {
+    const res = await fetch("/health");
+    const data = await res.json();
+    
+    if (data.knowledge_base_configured) {
+      const ingestion = data.last_ingestion;
+      if (ingestion) {
+        if (ingestion.status === "COMPLETE") {
+          setStatus("✅", "Knowledge Base ready - Documents synced", "success");
+        } else if (ingestion.status === "IN_PROGRESS") {
+          setStatus("🔄", "Syncing documents to Knowledge Base...", "syncing");
+        } else if (ingestion.status === "FAILED") {
+          setStatus("❌", "Last sync failed", "error");
+        } else {
+          setStatus("📚", `Last sync: ${ingestion.status}`, "info");
+        }
+      } else {
+        setStatus("📭", "No documents synced yet. Upload some files!", "info");
+      }
+    } else {
+      setStatus("⚠️", "Knowledge Base not configured. Run setup script.", "warning");
+    }
+  } catch {
+    setStatus("❓", "Status unavailable", "error");
+  }
+}
+
+// Poll ingestion status until complete
+async function pollIngestionStatus(jobId) {
+  if (ingestionPollInterval) clearInterval(ingestionPollInterval);
+  
+  let pollCount = 0;
+  const maxPolls = 60; // Max 5 minutes (5s intervals)
+  
+  setStatus("🔄", "Syncing documents to Knowledge Base...", "syncing");
+  
+  ingestionPollInterval = setInterval(async () => {
+    pollCount++;
+    
+    try {
+      const res = await fetch("/sync/status");
+      const data = await res.json();
+      
+      if (data.status === "COMPLETE") {
+        clearInterval(ingestionPollInterval);
+        showProgress(false);
+        setStatus("✅", "Documents ready! You can now ask questions.", "success");
+        
+        // Flash success animation
+        statusEl.classList.add("status-flash");
+        setTimeout(() => statusEl.classList.remove("status-flash"), 2000);
+      } else if (data.status === "FAILED") {
+        clearInterval(ingestionPollInterval);
+        showProgress(false);
+        setStatus("❌", "Sync failed. Please try again.", "error");
+      } else if (data.status === "IN_PROGRESS") {
+        updateProgress(Math.min(90, pollCount * 3), `Syncing... (${data.status})`);
+      }
+      
+      if (pollCount >= maxPolls) {
+        clearInterval(ingestionPollInterval);
+        showProgress(false);
+        setStatus("⏳", "Sync taking longer than expected. Check back later.", "warning");
+      }
+    } catch (err) {
+      console.error("Poll error:", err);
+    }
+  }, 5000);
+}
+
+// Upload handler
+document.getElementById("upload-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  const fileInput = document.getElementById("files");
+  if (!fileInput.files.length) {
+    setStatus("⚠️", "Please select files to upload", "warning");
+    return;
+  }
+  
+  showProgress(true);
+  updateProgress(10, "Uploading files to S3...");
+  
+  const fd = new FormData(e.target);
+  
+  try {
+    const res = await fetch("/upload", { method: "POST", body: fd });
+    const data = await res.json();
+    
+    if (data.error) {
+      showProgress(false);
+      setStatus("❌", `Error: ${data.error}`, "error");
+    } else {
+      updateProgress(40, "Files uploaded. Starting sync...");
+      
+      // Show uploaded file names
+      if (data.uploaded && data.uploaded.length > 0) {
+        uploadedFilesEl.innerHTML = `<strong>📁 Uploaded:</strong> ${data.uploaded.map(f => `<span class="file-tag">${f}</span>`).join("")}`;
+        uploadedFilesEl.classList.remove("hidden");
+      }
+      
+      setStatus("📤", `${data.uploaded?.length || 0} file(s) uploaded`, "info");
+      
+      // Start polling for ingestion status
+      if (data.ingestion_job_id) {
+        pollIngestionStatus(data.ingestion_job_id);
+      } else {
+        showProgress(false);
+        setStatus("⚠️", data.warning || "Upload complete but sync may have issues", "warning");
+      }
+    }
+  } catch (err) {
+    showProgress(false);
+    setStatus("❌", "Upload failed. Check connection.", "error");
+  }
+  
+  // Clear file input
+  fileInput.value = "";
+});
+
+// Manual sync button
+document.getElementById("sync-btn").addEventListener("click", async () => {
+  showProgress(true);
+  updateProgress(20, "Starting manual sync...");
+  
+  try {
+    const res = await fetch("/sync", { method: "POST" });
+    const data = await res.json();
+    
+    if (data.error) {
+      showProgress(false);
+      setStatus("❌", `Error: ${data.error}`, "error");
+    } else {
+      updateProgress(40, "Sync started...");
+      pollIngestionStatus(data.ingestion_job_id);
+    }
+  } catch (err) {
+    showProgress(false);
+    setStatus("❌", "Sync failed. Check connection.", "error");
+  }
+});
+
+// Chat
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = input.value.trim();
+  if (!question) return;
+  const k = Math.max(1, Math.min(10, parseInt(topKEl.value || "4", 10)));
+
+  // user bubble
+  addBubble(question, "user");
+  input.value = "";
+
+  // bot bubble placeholder
+  const botBubble = addBubble("…", "bot");
+  setThinking(true);
+
+  try {
+    const res = await fetch("/ask", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ question, k })
+    });
+    const data = await res.json();
+
+    // context on the side panel (truncated for UI)
+    ctxList.innerHTML = "";
+    (data.context || []).forEach((c, i) => {
+      const li = document.createElement("li");
+      const maxLen = 150;
+      const truncated = c.length > maxLen ? c.substring(0, maxLen) + "…" : c;
+      li.textContent = truncated;
+      li.title = c; // Full text on hover
+      li.style.cursor = "pointer";
+      li.onclick = () => li.textContent = li.textContent === truncated ? c : truncated;
+      ctxList.appendChild(li);
+    });
+
+    if (data.error) {
+      await typeInto(botBubble, "⚠️ " + data.error, 10);
+    } else {
+      await typeInto(botBubble, data.answer || "(no answer)", 8);
+    }
+  } catch (err) {
+    await typeInto(botBubble, "⚠️ Could not reach the server.", 12);
+  } finally {
+    setThinking(false);
+  }
+});
+
+// init
+refreshHealth();
+</script>
+{% endblock %}
