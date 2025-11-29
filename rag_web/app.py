@@ -239,8 +239,18 @@ def home():
 @app.get("/health")
 def health():
     """Health check endpoint."""
+    # Count documents in S3
+    doc_count = 0
+    try:
+        s3 = get_s3_client()
+        response = s3.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix="")
+        doc_count = response.get("KeyCount", 0)
+    except Exception:
+        pass
+    
     status = {
-        "status": "ok",
+        "status": "healthy",
+        "document_count": doc_count,
         "knowledge_base_configured": KNOWLEDGE_BASE_ID is not None,
         "s3_bucket_configured": S3_BUCKET_NAME is not None,
         "llm": "bedrock" if USE_BEDROCK_LLM else "gemini"

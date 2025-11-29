@@ -4,17 +4,156 @@
 {% block content %}
 <section class="grid">
   <div class="col chat-col card">
-    <div class="robot-stage">
-      <div id="robot" class="robot">
-        <div class="antenna"><span class="tip"></span></div>
-        <div class="head">
-          <div class="eyes">
-            <span class="eye left"><i></i></span>
-            <span class="eye right"><i></i></span>
-          </div>
-          <div class="mouth"></div>
-        </div>
-        <div class="body"><div class="panel"></div></div>
+    <div class="neural-stage">
+      <div id="neural-network" class="neural-network">
+        <svg viewBox="0 0 280 180" preserveAspectRatio="xMidYMid meet">
+          <!-- Connections (drawn first so nodes appear on top) -->
+          <g class="connections">
+            <!-- Layer 1 to 2 -->
+            <path class="conn" d="M30,30 Q80,40 70,30"/>
+            <path class="conn" d="M30,30 Q80,60 70,60"/>
+            <path class="conn" d="M30,30 Q80,90 70,90"/>
+            <path class="conn" d="M30,30 Q80,120 70,120"/>
+            <path class="conn" d="M30,60 Q80,30 70,30"/>
+            <path class="conn" d="M30,60 Q80,60 70,60"/>
+            <path class="conn" d="M30,60 Q80,90 70,90"/>
+            <path class="conn" d="M30,60 Q80,120 70,120"/>
+            <path class="conn" d="M30,90 Q80,30 70,30"/>
+            <path class="conn" d="M30,90 Q80,60 70,60"/>
+            <path class="conn" d="M30,90 Q80,90 70,90"/>
+            <path class="conn" d="M30,90 Q80,120 70,120"/>
+            <path class="conn" d="M30,120 Q80,30 70,30"/>
+            <path class="conn" d="M30,120 Q80,60 70,60"/>
+            <path class="conn" d="M30,120 Q80,90 70,90"/>
+            <path class="conn" d="M30,120 Q80,120 70,120"/>
+            <path class="conn" d="M30,150 Q80,90 70,90"/>
+            <path class="conn" d="M30,150 Q80,120 70,120"/>
+            
+            <!-- Layer 2 to 3 -->
+            <path class="conn" d="M70,30 Q110,45 110,45"/>
+            <path class="conn" d="M70,30 Q110,75 110,75"/>
+            <path class="conn" d="M70,30 Q110,105 110,105"/>
+            <path class="conn" d="M70,30 Q110,135 110,135"/>
+            <path class="conn" d="M70,60 Q110,45 110,45"/>
+            <path class="conn" d="M70,60 Q110,75 110,75"/>
+            <path class="conn" d="M70,60 Q110,105 110,105"/>
+            <path class="conn" d="M70,60 Q110,135 110,135"/>
+            <path class="conn" d="M70,90 Q110,45 110,45"/>
+            <path class="conn" d="M70,90 Q110,75 110,75"/>
+            <path class="conn" d="M70,90 Q110,105 110,105"/>
+            <path class="conn" d="M70,90 Q110,135 110,135"/>
+            <path class="conn" d="M70,120 Q110,45 110,45"/>
+            <path class="conn" d="M70,120 Q110,75 110,75"/>
+            <path class="conn" d="M70,120 Q110,105 110,105"/>
+            <path class="conn" d="M70,120 Q110,135 110,135"/>
+            
+            <!-- Layer 3 to 4 -->
+            <path class="conn" d="M110,45 Q150,35 150,35"/>
+            <path class="conn" d="M110,45 Q150,65 150,65"/>
+            <path class="conn" d="M110,45 Q150,95 150,95"/>
+            <path class="conn" d="M110,45 Q150,125 150,125"/>
+            <path class="conn" d="M110,45 Q150,155 150,155"/>
+            <path class="conn" d="M110,75 Q150,35 150,35"/>
+            <path class="conn" d="M110,75 Q150,65 150,65"/>
+            <path class="conn" d="M110,75 Q150,95 150,95"/>
+            <path class="conn" d="M110,75 Q150,125 150,125"/>
+            <path class="conn" d="M110,75 Q150,155 150,155"/>
+            <path class="conn" d="M110,105 Q150,35 150,35"/>
+            <path class="conn" d="M110,105 Q150,65 150,65"/>
+            <path class="conn" d="M110,105 Q150,95 150,95"/>
+            <path class="conn" d="M110,105 Q150,125 150,125"/>
+            <path class="conn" d="M110,105 Q150,155 150,155"/>
+            <path class="conn" d="M110,135 Q150,35 150,35"/>
+            <path class="conn" d="M110,135 Q150,65 150,65"/>
+            <path class="conn" d="M110,135 Q150,95 150,95"/>
+            <path class="conn" d="M110,135 Q150,125 150,125"/>
+            <path class="conn" d="M110,135 Q150,155 150,155"/>
+            
+            <!-- Layer 4 to 5 -->
+            <path class="conn" d="M150,35 Q190,50 190,50"/>
+            <path class="conn" d="M150,35 Q190,90 190,90"/>
+            <path class="conn" d="M150,35 Q190,130 190,130"/>
+            <path class="conn" d="M150,65 Q190,50 190,50"/>
+            <path class="conn" d="M150,65 Q190,90 190,90"/>
+            <path class="conn" d="M150,65 Q190,130 190,130"/>
+            <path class="conn" d="M150,95 Q190,50 190,50"/>
+            <path class="conn" d="M150,95 Q190,90 190,90"/>
+            <path class="conn" d="M150,95 Q190,130 190,130"/>
+            <path class="conn" d="M150,125 Q190,50 190,50"/>
+            <path class="conn" d="M150,125 Q190,90 190,90"/>
+            <path class="conn" d="M150,125 Q190,130 190,130"/>
+            <path class="conn" d="M150,155 Q190,90 190,90"/>
+            <path class="conn" d="M150,155 Q190,130 190,130"/>
+            
+            <!-- Layer 5 to 6 -->
+            <path class="conn" d="M190,50 Q230,60 230,60"/>
+            <path class="conn" d="M190,50 Q230,120 230,120"/>
+            <path class="conn" d="M190,90 Q230,60 230,60"/>
+            <path class="conn" d="M190,90 Q230,120 230,120"/>
+            <path class="conn" d="M190,130 Q230,60 230,60"/>
+            <path class="conn" d="M190,130 Q230,120 230,120"/>
+            
+            <!-- Layer 6 to output -->
+            <path class="conn" d="M230,60 Q260,90 260,90"/>
+            <path class="conn" d="M230,120 Q260,90 260,90"/>
+          </g>
+          
+          <!-- Layer 1: Input (5 nodes) -->
+          <circle class="node" cx="30" cy="30" r="8"/>
+          <circle class="node" cx="30" cy="60" r="8"/>
+          <circle class="node" cx="30" cy="90" r="8"/>
+          <circle class="node" cx="30" cy="120" r="8"/>
+          <circle class="node" cx="30" cy="150" r="8"/>
+          
+          <!-- Layer 2: Hidden (4 nodes) -->
+          <circle class="node" cx="70" cy="30" r="7"/>
+          <circle class="node" cx="70" cy="60" r="7"/>
+          <circle class="node" cx="70" cy="90" r="7"/>
+          <circle class="node" cx="70" cy="120" r="7"/>
+          
+          <!-- Layer 3: Hidden (4 nodes) -->
+          <circle class="node" cx="110" cy="45" r="7"/>
+          <circle class="node" cx="110" cy="75" r="7"/>
+          <circle class="node" cx="110" cy="105" r="7"/>
+          <circle class="node" cx="110" cy="135" r="7"/>
+          
+          <!-- Layer 4: Hidden (5 nodes) -->
+          <circle class="node" cx="150" cy="35" r="7"/>
+          <circle class="node" cx="150" cy="65" r="7"/>
+          <circle class="node" cx="150" cy="95" r="7"/>
+          <circle class="node" cx="150" cy="125" r="7"/>
+          <circle class="node" cx="150" cy="155" r="7"/>
+          
+          <!-- Layer 5: Hidden (3 nodes) -->
+          <circle class="node" cx="190" cy="50" r="7"/>
+          <circle class="node" cx="190" cy="90" r="7"/>
+          <circle class="node" cx="190" cy="130" r="7"/>
+          
+          <!-- Layer 6: Hidden (2 nodes) -->
+          <circle class="node" cx="230" cy="60" r="7"/>
+          <circle class="node" cx="230" cy="120" r="7"/>
+          
+          <!-- Output node -->
+          <circle class="node" cx="260" cy="90" r="9" style="stroke: #22d3ee;"/>
+          
+          <!-- Signal particles (16 total for more activity) -->
+          <circle class="signal" r="3" style="offset-path: path('M30,30 Q80,40 70,30 Q110,45 110,45 Q150,65 150,65 Q190,90 190,90 Q230,120 230,120 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,60 Q80,60 70,60 Q110,75 110,75 Q150,95 150,95 Q190,90 190,90 Q230,60 230,60 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,90 Q80,90 70,90 Q110,105 110,105 Q150,125 150,125 Q190,130 190,130 Q230,120 230,120 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,120 Q80,120 70,120 Q110,135 110,135 Q150,155 150,155 Q190,130 190,130 Q230,60 230,60 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,150 Q80,120 70,120 Q110,105 110,105 Q150,95 150,95 Q190,50 190,50 Q230,60 230,60 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,30 Q80,60 70,60 Q110,45 110,45 Q150,35 150,35 Q190,50 190,50 Q230,120 230,120 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,60 Q80,90 70,90 Q110,75 110,75 Q150,65 150,65 Q190,90 190,90 Q230,60 230,60 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,90 Q80,60 70,60 Q110,45 110,45 Q150,35 150,35 Q190,50 190,50 Q230,60 230,60 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,120 Q80,90 70,90 Q110,105 110,105 Q150,95 150,95 Q190,90 190,90 Q230,120 230,120 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,150 Q80,90 70,90 Q110,75 110,75 Q150,65 150,65 Q190,50 190,50 Q230,60 230,60 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,30 Q80,120 70,120 Q110,135 110,135 Q150,125 150,125 Q190,130 190,130 Q230,120 230,120 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,60 Q80,30 70,30 Q110,45 110,45 Q150,65 150,65 Q190,90 190,90 Q230,60 230,60 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,90 Q80,120 70,120 Q110,105 110,105 Q150,125 150,125 Q190,90 190,90 Q230,120 230,120 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,120 Q80,60 70,60 Q110,75 110,75 Q150,95 150,95 Q190,130 190,130 Q230,60 230,60 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,150 Q80,120 70,120 Q110,135 110,135 Q150,95 150,95 Q190,50 190,50 Q230,120 230,120 Q260,90 260,90');"/>
+          <circle class="signal" r="3" style="offset-path: path('M30,30 Q80,90 70,90 Q110,75 110,75 Q150,95 150,95 Q190,130 190,130 Q230,60 230,60 Q260,90 260,90');"/>
+        </svg>
       </div>
     </div>
 
@@ -73,7 +212,7 @@
 
 <script>
 const msgs  = document.getElementById("messages");
-const robot = document.getElementById("robot");
+const neuralNetwork = document.getElementById("neural-network");
 const input = document.getElementById("chat-input");
 const form  = document.getElementById("chat-form");
 const sendBtn = document.getElementById("send-btn");
@@ -98,232 +237,218 @@ function addBubble(text, who="user") {
   wrap.textContent = text;
   msgs.appendChild(wrap);
   msgs.scrollTop = msgs.scrollHeight;
-  return wrap;
-}
-async function typeInto(el, text, delay=12) {
-  el.textContent = "";
-  for (let i = 0; i < text.length; i++) {
-    el.textContent += text[i];
-    await new Promise(r => setTimeout(r, delay));
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-}
-function setThinking(on) {
-  robot.classList.toggle("thinking", on);
-  sendBtn.disabled = on;
 }
 
-// Status display helpers
-function setStatus(icon, text, type = "info") {
+function setThinking(on) {
+  if (on) {
+    neuralNetwork.classList.add("thinking");
+  } else {
+    neuralNetwork.classList.remove("thinking");
+  }
+  sendBtn.disabled = on;
+  input.disabled = on;
+}
+
+// Status helpers
+function setStatus(icon, text, statusClass = "") {
   statusIcon.textContent = icon;
   statusText.textContent = text;
-  statusEl.className = `status-box status-${type}`;
+  statusEl.className = "status-box";
+  if (statusClass) {
+    statusEl.classList.add(statusClass);
+  }
 }
 
+function flashStatus() {
+  statusEl.classList.add("status-flash");
+  setTimeout(() => statusEl.classList.remove("status-flash"), 1500);
+}
+
+// Progress helpers
 function showProgress(show) {
-  uploadProgress.classList.toggle("hidden", !show);
-  uploadBtn.disabled = show;
-  syncBtn.disabled = show;
+  if (show) {
+    uploadProgress.classList.remove("hidden");
+  } else {
+    uploadProgress.classList.add("hidden");
+  }
 }
 
 function updateProgress(percent, text) {
-  progressFill.style.width = `${percent}%`;
+  progressFill.style.width = percent + "%";
   progressText.textContent = text;
 }
 
-// Health/status
-async function refreshHealth() {
+// Show uploaded files
+function showUploadedFiles(files) {
+  if (files.length === 0) {
+    uploadedFilesEl.classList.add("hidden");
+    return;
+  }
+  uploadedFilesEl.classList.remove("hidden");
+  uploadedFilesEl.innerHTML = "<strong>Uploaded:</strong> " + 
+    files.map(f => `<span class="file-tag">${f}</span>`).join(" ");
+}
+
+// Health check
+async function checkHealth() {
   try {
     const res = await fetch("/health");
     const data = await res.json();
-    
-    if (data.knowledge_base_configured) {
-      const ingestion = data.last_ingestion;
-      if (ingestion) {
-        if (ingestion.status === "COMPLETE") {
-          setStatus("✅", "Knowledge Base ready - Documents synced", "success");
-        } else if (ingestion.status === "IN_PROGRESS") {
-          setStatus("🔄", "Syncing documents to Knowledge Base...", "syncing");
-        } else if (ingestion.status === "FAILED") {
-          setStatus("❌", "Last sync failed", "error");
-        } else {
-          setStatus("📚", `Last sync: ${ingestion.status}`, "info");
-        }
-      } else {
-        setStatus("📭", "No documents synced yet. Upload some files!", "info");
-      }
+    if (data.status === "healthy") {
+      setStatus("✅", `Ready (${data.document_count} docs in S3)`, "status-success");
     } else {
-      setStatus("⚠️", "Knowledge Base not configured. Run setup script.", "warning");
+      setStatus("⚠️", data.message || "Service issue", "status-warning");
     }
-  } catch {
-    setStatus("❓", "Status unavailable", "error");
+  } catch (e) {
+    setStatus("❌", "Cannot connect to backend", "status-error");
   }
 }
 
-// Poll ingestion status until complete
+// Poll ingestion status
 async function pollIngestionStatus(jobId) {
-  if (ingestionPollInterval) clearInterval(ingestionPollInterval);
-  
-  let pollCount = 0;
-  const maxPolls = 60; // Max 5 minutes (5s intervals)
-  
-  setStatus("🔄", "Syncing documents to Knowledge Base...", "syncing");
+  setStatus("🔄", "Syncing with Knowledge Base...", "status-syncing");
   
   ingestionPollInterval = setInterval(async () => {
-    pollCount++;
-    
     try {
-      const res = await fetch("/sync/status");
+      const res = await fetch(`/ingestion-status/${jobId}`);
       const data = await res.json();
       
       if (data.status === "COMPLETE") {
         clearInterval(ingestionPollInterval);
-        showProgress(false);
-        setStatus("✅", "Documents ready! You can now ask questions.", "success");
-        
-        // Flash success animation
-        statusEl.classList.add("status-flash");
-        setTimeout(() => statusEl.classList.remove("status-flash"), 2000);
+        setStatus("✅", "Sync complete! Documents indexed.", "status-success");
+        flashStatus();
+        checkHealth();
       } else if (data.status === "FAILED") {
         clearInterval(ingestionPollInterval);
-        showProgress(false);
-        setStatus("❌", "Sync failed. Please try again.", "error");
-      } else if (data.status === "IN_PROGRESS") {
-        updateProgress(Math.min(90, pollCount * 3), `Syncing... (${data.status})`);
+        setStatus("❌", "Sync failed: " + (data.failure_reasons || "Unknown error"), "status-error");
+      } else {
+        setStatus("🔄", `Syncing: ${data.status}...`, "status-syncing");
       }
-      
-      if (pollCount >= maxPolls) {
-        clearInterval(ingestionPollInterval);
-        showProgress(false);
-        setStatus("⏳", "Sync taking longer than expected. Check back later.", "warning");
-      }
-    } catch (err) {
-      console.error("Poll error:", err);
+    } catch (e) {
+      clearInterval(ingestionPollInterval);
+      setStatus("⚠️", "Could not check sync status", "status-warning");
     }
-  }, 5000);
+  }, 3000);
 }
 
-// Upload handler
-document.getElementById("upload-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  
-  const fileInput = document.getElementById("files");
-  if (!fileInput.files.length) {
-    setStatus("⚠️", "Please select files to upload", "warning");
-    return;
-  }
-  
-  showProgress(true);
-  updateProgress(10, "Uploading files to S3...");
-  
-  const fd = new FormData(e.target);
-  
-  try {
-    const res = await fetch("/upload", { method: "POST", body: fd });
-    const data = await res.json();
-    
-    if (data.error) {
-      showProgress(false);
-      setStatus("❌", `Error: ${data.error}`, "error");
-    } else {
-      updateProgress(40, "Files uploaded. Starting sync...");
-      
-      // Show uploaded file names
-      if (data.uploaded && data.uploaded.length > 0) {
-        uploadedFilesEl.innerHTML = `<strong>📁 Uploaded:</strong> ${data.uploaded.map(f => `<span class="file-tag">${f}</span>`).join("")}`;
-        uploadedFilesEl.classList.remove("hidden");
-      }
-      
-      setStatus("📤", `${data.uploaded?.length || 0} file(s) uploaded`, "info");
-      
-      // Start polling for ingestion status
-      if (data.ingestion_job_id) {
-        pollIngestionStatus(data.ingestion_job_id);
-      } else {
-        showProgress(false);
-        setStatus("⚠️", data.warning || "Upload complete but sync may have issues", "warning");
-      }
-    }
-  } catch (err) {
-    showProgress(false);
-    setStatus("❌", "Upload failed. Check connection.", "error");
-  }
-  
-  // Clear file input
-  fileInput.value = "";
-});
-
-// Manual sync button
-document.getElementById("sync-btn").addEventListener("click", async () => {
-  showProgress(true);
-  updateProgress(20, "Starting manual sync...");
-  
-  try {
-    const res = await fetch("/sync", { method: "POST" });
-    const data = await res.json();
-    
-    if (data.error) {
-      showProgress(false);
-      setStatus("❌", `Error: ${data.error}`, "error");
-    } else {
-      updateProgress(40, "Sync started...");
-      pollIngestionStatus(data.ingestion_job_id);
-    }
-  } catch (err) {
-    showProgress(false);
-    setStatus("❌", "Sync failed. Check connection.", "error");
-  }
-});
-
 // Chat
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", async e => {
   e.preventDefault();
-  const question = input.value.trim();
-  if (!question) return;
-  const k = Math.max(1, Math.min(10, parseInt(topKEl.value || "4", 10)));
-
-  // user bubble
-  addBubble(question, "user");
+  const q = input.value.trim();
+  if (!q) return;
+  addBubble(q, "user");
   input.value = "";
-
-  // bot bubble placeholder
-  const botBubble = addBubble("…", "bot");
   setThinking(true);
 
   try {
     const res = await fetch("/ask", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ question, k })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: q, top_k: parseInt(topKEl.value) || 4 })
     });
     const data = await res.json();
-
-    // context on the side panel (truncated for UI)
+    addBubble(data.answer || data.error, "bot");
+    
+    // Update context
     ctxList.innerHTML = "";
     (data.context || []).forEach((c, i) => {
       const li = document.createElement("li");
-      const maxLen = 150;
-      const truncated = c.length > maxLen ? c.substring(0, maxLen) + "…" : c;
+      const truncated = c.length > 150 ? c.substring(0, 150) + "..." : c;
       li.textContent = truncated;
-      li.title = c; // Full text on hover
-      li.style.cursor = "pointer";
-      li.onclick = () => li.textContent = li.textContent === truncated ? c : truncated;
+      li.dataset.full = c;
+      li.dataset.truncated = truncated;
+      li.addEventListener("click", () => {
+        if (li.classList.contains("expanded")) {
+          li.textContent = li.dataset.truncated;
+          li.classList.remove("expanded");
+        } else {
+          li.textContent = li.dataset.full;
+          li.classList.add("expanded");
+        }
+      });
       ctxList.appendChild(li);
     });
-
-    if (data.error) {
-      await typeInto(botBubble, "⚠️ " + data.error, 10);
-    } else {
-      await typeInto(botBubble, data.answer || "(no answer)", 8);
-    }
   } catch (err) {
-    await typeInto(botBubble, "⚠️ Could not reach the server.", 12);
-  } finally {
-    setThinking(false);
+    addBubble("Error: " + err.message, "bot");
   }
+  setThinking(false);
 });
 
-// init
-refreshHealth();
+// Upload
+document.getElementById("upload-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const filesInput = document.getElementById("files");
+  if (!filesInput.files.length) return;
+  
+  const fileNames = Array.from(filesInput.files).map(f => f.name);
+  
+  const fd = new FormData();
+  for (const f of filesInput.files) fd.append("files", f);
+  
+  showProgress(true);
+  updateProgress(0, "Uploading files...");
+  uploadBtn.disabled = true;
+  syncBtn.disabled = true;
+  
+  try {
+    // Simulate upload progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += 10;
+      if (progress <= 90) {
+        updateProgress(progress, `Uploading... ${progress}%`);
+      }
+    }, 200);
+    
+    const res = await fetch("/upload", { method: "POST", body: fd });
+    
+    clearInterval(progressInterval);
+    updateProgress(100, "Upload complete!");
+    
+    const data = await res.json();
+    
+    if (data.ingestion_job_id) {
+      showUploadedFiles(fileNames);
+      setTimeout(() => showProgress(false), 1000);
+      pollIngestionStatus(data.ingestion_job_id);
+    } else {
+      setStatus("⚠️", data.message || "Upload completed", "status-warning");
+      showProgress(false);
+    }
+  } catch (err) {
+    setStatus("❌", "Upload failed: " + err.message, "status-error");
+    showProgress(false);
+  }
+  
+  uploadBtn.disabled = false;
+  syncBtn.disabled = false;
+  filesInput.value = "";
+});
+
+// Manual sync
+syncBtn.addEventListener("click", async () => {
+  syncBtn.disabled = true;
+  uploadBtn.disabled = true;
+  setStatus("🔄", "Starting manual sync...", "status-syncing");
+  
+  try {
+    const res = await fetch("/sync", { method: "POST" });
+    const data = await res.json();
+    
+    if (data.ingestion_job_id) {
+      pollIngestionStatus(data.ingestion_job_id);
+    } else {
+      setStatus("⚠️", data.message || "Sync initiated", "status-warning");
+    }
+  } catch (err) {
+    setStatus("❌", "Sync failed: " + err.message, "status-error");
+  }
+  
+  syncBtn.disabled = false;
+  uploadBtn.disabled = false;
+});
+
+// Initial health check
+checkHealth();
 </script>
 {% endblock %}
