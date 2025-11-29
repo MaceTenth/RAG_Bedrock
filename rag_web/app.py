@@ -96,21 +96,45 @@ def get_gemini_client():
 # ---------------------------
 # Bedrock RAG Functions
 # ---------------------------
-def retrieve_from_bedrock(query, k=3):
+def retrieve_from_bedrock(query, k=3, search_type="SEMANTIC", reranking=False, metadata_filter=None):
     """Retrieve relevant documents from Bedrock Knowledge Base."""
     if not KNOWLEDGE_BASE_ID:
         raise RuntimeError("KNOWLEDGE_BASE_ID not configured. Run setup_aws_infrastructure.py first.")
     
     client = get_bedrock_agent_runtime()
     
+    # Build vector search configuration
+    vector_config = {
+        "numberOfResults": k
+    }
+    
+    # Add search type (SEMANTIC or HYBRID)
+    if search_type == "HYBRID":
+        vector_config["overrideSearchType"] = "HYBRID"
+    else:
+        vector_config["overrideSearchType"] = "SEMANTIC"
+    
+    # Add metadata filter if provided
+    if metadata_filter:
+        vector_config["filter"] = metadata_filter
+    
+    retrieval_config = {
+        "vectorSearchConfiguration": vector_config
+    }
+    
+    # Add reranking if enabled
+    if reranking:
+        retrieval_config["vectorSearchConfiguration"]["rerankingConfiguration"] = {
+            "type": "BEDROCK_RERANKING_MODEL",
+            "modelConfiguration": {
+                "modelArn": f"arn:aws:bedrock:{AWS_REGION}::foundation-model/amazon.rerank-v1:0"
+            }
+        }
+    
     response = client.retrieve(
         knowledgeBaseId=KNOWLEDGE_BASE_ID,
         retrievalQuery={"text": query},
-        retrievalConfiguration={
-            "vectorSearchConfiguration": {
-                "numberOfResults": k
-            }
-        }
+        retrievalConfiguration=retrieval_config
     )
     
     results = []
@@ -122,7 +146,7 @@ def retrieve_from_bedrock(query, k=3):
     return results
 
 
-def ask_bedrock_llm(context, question):
+def ask_bedrock_llm(context, question, temperature=1.0, top_p=0.95, top_k=40, max_tokens=1024):
     """Use Bedrock Claude to generate an answer."""
     client = get_bedrock_runtime()
     
@@ -136,7 +160,10 @@ Answer:"""
     
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1024,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "top_p": top_p,
+        "top_k": top_k,
         "messages": [
             {"role": "user", "content": prompt}
         ]
@@ -153,7 +180,7 @@ Answer:"""
     return response_body["content"][0]["text"].strip()
 
 
-def ask_gemini(context, question):
+def ask_gemini(context, question, temperature=1.0, top_p=0.95, top_k=40, max_tokens=1024):
     """Use Gemini to generate an answer."""
     from google.genai import types
     
@@ -170,18 +197,21 @@ Answer:"""
         model=GEMINI_MODEL,
         contents=prompt,
         config=types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(thinking_budget=1)
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k,
+            max_output_tokens=max_tokens,
         )
     )
     return (resp.text or "").strip()
 
 
-def generate_answer(context, question):
+def generate_answer(context, question, temperature=1.0, top_p=0.95, top_k=40, max_tokens=1024):
     """Generate answer using configured LLM (Bedrock or Gemini)."""
     if USE_BEDROCK_LLM:
-        return ask_bedrock_llm(context, question)
+        return ask_bedrock_llm(context, question, temperature, top_p, top_k, max_tokens)
     else:
-        return ask_gemini(context, question)
+        return ask_gemini(context, question, temperature, top_p, top_k, max_tokens)
 
 
 def upload_to_s3(file):
@@ -224,6 +254,23 @@ def get_ingestion_status():
     if jobs:
         return jobs[0]
     return None
+
+
+def get_ingestion_job_by_id(job_id):
+    """Get the status of a specific ingestion job by ID."""
+    if not KNOWLEDGE_BASE_ID or not DATA_SOURCE_ID:
+        return None
+    
+    client = get_bedrock_agent()
+    try:
+        response = client.get_ingestion_job(
+            knowledgeBaseId=KNOWLEDGE_BASE_ID,
+            dataSourceId=DATA_SOURCE_ID,
+            ingestionJobId=job_id
+        )
+        return response.get("ingestionJob", {})
+    except Exception:
+        return None
 
 # ---------------------------
 # Pages
@@ -317,6 +364,20 @@ def sync():
         return jsonify({"error": str(e)}), 500
 
 
+@app.get("/ingestion-status/<job_id>")
+def ingestion_status(job_id):
+    """Get the status of a specific ingestion job."""
+    job = get_ingestion_job_by_id(job_id)
+    if job:
+        return jsonify({
+            "status": job.get("status"),
+            "started_at": str(job.get("startedAt", "")),
+            "updated_at": str(job.get("updatedAt", "")),
+            "failure_reasons": job.get("failureReasons", [])
+        })
+    return jsonify({"status": "not_found", "error": "Job not found"}), 404
+
+
 @app.get("/sync/status")
 def sync_status():
     """Get the status of the latest ingestion job."""
@@ -335,14 +396,31 @@ def ask():
     """Answer a question using RAG."""
     data = request.get_json(force=True, silent=True) or {}
     question = (data.get("question") or "").strip()
-    k = int(data.get("k", 3))
+    
+    # Retrieval parameters
+    k = int(data.get("top_k", 4))
+    search_type = data.get("search_type", "SEMANTIC")
+    reranking = data.get("reranking", False)
+    metadata_filter = data.get("metadata_filter", None)
+    
+    # LLM generation parameters
+    temperature = float(data.get("temperature", 1.0))
+    top_p = float(data.get("top_p", 0.95))
+    llm_top_k = int(data.get("llm_top_k", 40))
+    max_tokens = int(data.get("max_tokens", 1024))
     
     if not question:
         return jsonify({"error": "Provide 'question' in JSON body."}), 400
     
     try:
         # Retrieve relevant chunks from Bedrock Knowledge Base
-        chunks = retrieve_from_bedrock(question, k=k)
+        chunks = retrieve_from_bedrock(
+            question, 
+            k=k, 
+            search_type=search_type, 
+            reranking=reranking, 
+            metadata_filter=metadata_filter
+        )
         
         if not chunks:
             return jsonify({
@@ -352,11 +430,20 @@ def ask():
         
         # Generate answer using LLM
         context = "\n".join(chunks)
-        answer = generate_answer(context, question)
+        answer = generate_answer(
+            context, 
+            question, 
+            temperature=temperature, 
+            top_p=top_p, 
+            top_k=llm_top_k, 
+            max_tokens=max_tokens
+        )
         
         return jsonify({
             "question": question,
             "top_k": k,
+            "search_type": search_type,
+            "reranking": reranking,
             "context": chunks,
             "answer": answer
         })

@@ -1,6 +1,6 @@
 # Environment variables
 .env
-*.env
+
 
 # AWS credentials
 *accessKeys*.csv

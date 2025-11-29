@@ -162,13 +162,95 @@
     <form id="chat-form" class="chat-form" autocomplete="off">
       <input id="chat-input" type="text" placeholder="Ask me anything from your docs…" required />
       <div class="controls">
-        <label class="k-label">
-          Top-K
-          <input id="topk" type="number" min="1" max="10" value="4">
-        </label>
         <button id="send-btn" type="submit">Send</button>
+        <button type="button" id="settings-toggle" class="ghost settings-btn" title="Settings">⚙️</button>
       </div>
     </form>
+    
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel hidden">
+      <h3>⚙️ RAG Settings</h3>
+      
+      <div class="settings-section">
+        <h4>Retrieval Settings</h4>
+        
+        <div class="setting-row">
+          <label class="setting-label">
+            Top-K
+            <span class="tooltip" data-tip="Number of document chunks to retrieve (1-100)">?</span>
+          </label>
+          <input id="topk" type="number" min="1" max="100" value="4" class="setting-input">
+        </div>
+        
+        <div class="setting-row">
+          <label class="setting-label">
+            Search Type
+            <span class="tooltip" data-tip="SEMANTIC: Pure vector similarity. HYBRID: Combines vector + keyword search for better exact term matching.">?</span>
+          </label>
+          <select id="search-type" class="setting-input">
+            <option value="SEMANTIC">Semantic (Vector Only)</option>
+            <option value="HYBRID">Hybrid (Vector + Keyword)</option>
+          </select>
+        </div>
+        
+        <div class="setting-row">
+          <label class="setting-label">
+            Reranking
+            <span class="tooltip" data-tip="Re-scores retrieved chunks using a specialized model to improve relevance ranking.">?</span>
+          </label>
+          <select id="reranking" class="setting-input">
+            <option value="off">Off</option>
+            <option value="on">On (Amazon Rerank v1)</option>
+          </select>
+        </div>
+        
+        <div class="setting-row">
+          <label class="setting-label">
+            Metadata Filter
+            <span class="tooltip" data-tip="Filter documents by attributes. Example: {&quot;equals&quot;: {&quot;key&quot;: &quot;category&quot;, &quot;value&quot;: &quot;tech&quot;}}">?</span>
+          </label>
+          <input id="metadata-filter" type="text" placeholder='{"equals": {"key": "...", "value": "..."}}' class="setting-input setting-input-wide">
+        </div>
+      </div>
+      
+      <div class="settings-section">
+        <h4>LLM Generation Settings</h4>
+        
+        <div class="setting-row">
+          <label class="setting-label">
+            Temperature
+            <span class="tooltip" data-tip="Controls randomness. 0 = deterministic, 2 = very creative. Default: 1.0">?</span>
+          </label>
+          <input id="temperature" type="range" min="0" max="2" step="0.1" value="1" class="setting-slider">
+          <span id="temperature-val" class="setting-value">1.0</span>
+        </div>
+        
+        <div class="setting-row">
+          <label class="setting-label">
+            Top-P
+            <span class="tooltip" data-tip="Nucleus sampling. Only consider tokens within this cumulative probability. Default: 0.95">?</span>
+          </label>
+          <input id="top-p" type="range" min="0" max="1" step="0.05" value="0.95" class="setting-slider">
+          <span id="top-p-val" class="setting-value">0.95</span>
+        </div>
+        
+        <div class="setting-row">
+          <label class="setting-label">
+            Top-K (LLM)
+            <span class="tooltip" data-tip="Limit token choices to top K most likely tokens. Default: 40">?</span>
+          </label>
+          <input id="llm-topk" type="number" min="1" max="100" value="40" class="setting-input">
+        </div>
+        
+        <div class="setting-row">
+          <label class="setting-label">
+            Max Tokens
+            <span class="tooltip" data-tip="Maximum length of the generated response. Default: 1024">?</span>
+          </label>
+          <input id="max-tokens" type="number" min="100" max="8192" value="1024" class="setting-input">
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="col docs-col">
@@ -228,7 +310,33 @@ const uploadBtn = document.getElementById("upload-btn");
 const syncBtn = document.getElementById("sync-btn");
 const uploadedFilesEl = document.getElementById("uploaded-files");
 
+// Settings elements
+const settingsToggle = document.getElementById("settings-toggle");
+const settingsPanel = document.getElementById("settings-panel");
+const searchTypeEl = document.getElementById("search-type");
+const rerankingEl = document.getElementById("reranking");
+const metadataFilterEl = document.getElementById("metadata-filter");
+const temperatureEl = document.getElementById("temperature");
+const temperatureVal = document.getElementById("temperature-val");
+const topPEl = document.getElementById("top-p");
+const topPVal = document.getElementById("top-p-val");
+const llmTopKEl = document.getElementById("llm-topk");
+const maxTokensEl = document.getElementById("max-tokens");
+
 let ingestionPollInterval = null;
+
+// Settings toggle
+settingsToggle.addEventListener("click", () => {
+  settingsPanel.classList.toggle("hidden");
+});
+
+// Slider value updates
+temperatureEl.addEventListener("input", () => {
+  temperatureVal.textContent = parseFloat(temperatureEl.value).toFixed(1);
+});
+topPEl.addEventListener("input", () => {
+  topPVal.textContent = parseFloat(topPEl.value).toFixed(2);
+});
 
 // Bubble helpers
 function addBubble(text, who="user") {
@@ -339,14 +447,49 @@ form.addEventListener("submit", async e => {
   addBubble(q, "user");
   input.value = "";
   setThinking(true);
+  
+  // Add thinking indicator
+  const thinkingBubble = document.createElement("div");
+  thinkingBubble.className = "bubble bot thinking-bubble";
+  thinkingBubble.innerHTML = '<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span> Retrieving from Knowledge Base & generating response...';
+  msgs.appendChild(thinkingBubble);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Build request with all parameters
+  const requestBody = {
+    question: q,
+    // Retrieval settings
+    top_k: parseInt(topKEl.value) || 4,
+    search_type: searchTypeEl.value,
+    reranking: rerankingEl.value === "on",
+    // LLM generation settings
+    temperature: parseFloat(temperatureEl.value),
+    top_p: parseFloat(topPEl.value),
+    llm_top_k: parseInt(llmTopKEl.value) || 40,
+    max_tokens: parseInt(maxTokensEl.value) || 1024
+  };
+  
+  // Add metadata filter if provided
+  const metadataFilter = metadataFilterEl.value.trim();
+  if (metadataFilter) {
+    try {
+      requestBody.metadata_filter = JSON.parse(metadataFilter);
+    } catch (e) {
+      // Invalid JSON, ignore
+    }
+  }
 
   try {
     const res = await fetch("/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: q, top_k: parseInt(topKEl.value) || 4 })
+      body: JSON.stringify(requestBody)
     });
     const data = await res.json();
+    
+    // Remove thinking bubble
+    thinkingBubble.remove();
+    
     addBubble(data.answer || data.error, "bot");
     
     // Update context
@@ -369,6 +512,8 @@ form.addEventListener("submit", async e => {
       ctxList.appendChild(li);
     });
   } catch (err) {
+    // Remove thinking bubble on error
+    thinkingBubble.remove();
     addBubble("Error: " + err.message, "bot");
   }
   setThinking(false);
