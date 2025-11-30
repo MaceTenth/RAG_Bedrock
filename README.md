@@ -100,13 +100,13 @@ This creates:
 python app.py
 ```
 
-The application will be available at `http://localhost:8001`
+The application will be available at `http://localhost:8000`
 
 ## Usage
 
 ### Web Interface
 
-1. Open `http://localhost:8001` in your browser
+1. Open `http://localhost:8000` in your browser
 2. **Upload Documents** - Use the upload section to add your documents
 3. **Wait for Sync** - Documents are automatically indexed (check sync status)
 4. **Ask Questions** - Type your question and get AI-powered answers
@@ -127,7 +127,7 @@ The application will be available at `http://localhost:8001`
 
 **Ask a question:**
 ```bash
-curl -X POST http://localhost:8001/ask \
+curl -X POST http://localhost:8000/ask \
   -H "Content-Type: application/json" \
   -d '{
     "question": "What is machine learning?",
@@ -139,7 +139,7 @@ curl -X POST http://localhost:8001/ask \
 
 **Upload a document:**
 ```bash
-curl -X POST http://localhost:8001/upload \
+curl -X POST http://localhost:8000/upload \
   -F "files=@document.pdf"
 ```
 
