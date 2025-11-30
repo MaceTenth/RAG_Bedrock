@@ -224,15 +224,6 @@ rag_web/
 - Verify `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are correct
 - Ensure your IAM user has Bedrock, S3, and OpenSearch permissions
 
-## Security Notes
-
-⚠️ **Never commit `.env` files or AWS credentials to version control!**
-
-The `.gitignore` is configured to exclude:
-- `.env` files
-- AWS credential files (`*accessKeys*.csv`)
-- Private keys (`*.pem`)
-
 ## License
 
 MIT License
